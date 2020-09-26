@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <opencv2/imgcodecs.hpp>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,5 +22,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    std::vector<cv::Mat> _imagePyr;
 };
 #endif // MAINWINDOW_H

@@ -20,8 +20,14 @@ public:
 private slots:
     void on_actionOpen_file_triggered();
 
+    void on_comboBoxLayer_activated(int index);
+
 private:
     Ui::MainWindow *ui;
     std::vector<cv::Mat> _imagePyr;
+
+    void ShowCVImage(const cv::Mat& cvImage,
+                     int scaleWidth,
+                     int scaleHeight);
 };
 #endif // MAINWINDOW_H

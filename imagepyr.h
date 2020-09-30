@@ -15,6 +15,7 @@ public:
 public:
     ImagePyr(const QString& filePath);
     QImage GetLayer(int index);
+    void SetSizeDiv(float sizeDiv);
     bool IsEmpty();
     int Width();
     int Height();
@@ -24,6 +25,7 @@ public:
 private:
     int _count;
     QImage _image;
+    float _sizeDiv;
     bool _isEmpty;
 };
 

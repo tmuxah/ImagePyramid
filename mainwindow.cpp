@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->horizontalPanel->setVisible(false);
+    ui->panel->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -33,6 +33,13 @@ void MainWindow::ShowImage(const QImage& image,
     ui->labelImage->setPixmap((scaledPixmap.isNull())
                               ? pixmap
                               : scaledPixmap);
+}
+
+ImagePyr* MainWindow::GetCurrImagePyr()
+{
+    // Extracting image pyramid that is stored in data of the file combo box
+    QVariant data = ui->comboBoxFile->itemData(ui->comboBoxFile->currentIndex());
+    return data.value<ImagePyr*>();
 }
 
 void MainWindow::on_actionOpen_file_triggered()
@@ -73,17 +80,13 @@ void MainWindow::on_actionOpen_file_triggered()
             QMessageBox::warning(this, " ", "This file is already opened.");
         }
 
-        ui->horizontalPanel->setVisible(true);
+        ui->panel->setVisible(true);
     }
 }
 
 void MainWindow::on_comboBoxLayer_activated(int index)
 {
-    // Extracting image pyramid that is stored in data of the file combo box
-    QVariant data = ui->comboBoxFile->itemData(ui->comboBoxFile->currentIndex());
-    ImagePyr* imagePyr = data.value<ImagePyr*>();
-
-    // Displaying selected layer of image pyramid
+    ImagePyr* imagePyr = GetCurrImagePyr();
     ShowImage(imagePyr->GetLayer(index),
               imagePyr->Width(),
               imagePyr->Height());
@@ -91,9 +94,10 @@ void MainWindow::on_comboBoxLayer_activated(int index)
 
 void MainWindow::on_comboBoxFile_activated(int index)
 {
-    // Extracting image pyramid that is stored in data of comboBoxFile
-    QVariant data = ui->comboBoxFile->itemData(index);
-    ImagePyr* imagePyr = data.value<ImagePyr*>();
+    ImagePyr* imagePyr = GetCurrImagePyr();
+    imagePyr->SetSizeDiv(ui->dSpinBoxSizeDiv->value());
+    ui->dSpinBoxSizeDiv->setMaximum(std::min(imagePyr->Width(),
+                                             imagePyr->Height()));
 
     // Updating the layer combo box items [0, 1, 2, ..., N)
     QStringList layerList;
@@ -104,4 +108,12 @@ void MainWindow::on_comboBoxFile_activated(int index)
 
     // Displaying selected image
     on_comboBoxLayer_activated(0);
+}
+
+void MainWindow::on_dSpinBoxSizeDiv_valueChanged(double sizeDiv)
+{
+    // This will update the pyramid with new size divosor
+    // the layer check box with new items
+    // and reset image to first layer
+    on_comboBoxFile_activated(ui->comboBoxFile->currentIndex());
 }

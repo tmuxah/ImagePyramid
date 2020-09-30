@@ -23,6 +23,7 @@ private slots:
     void on_actionOpen_file_triggered();
     void on_comboBoxLayer_activated(int index);
     void on_comboBoxFile_activated(int index);
+    void on_dSpinBoxSizeDiv_valueChanged(double sizeDiv);
 
 private:
     Ui::MainWindow *ui;
@@ -31,5 +32,6 @@ private:
     void ShowImage(const QImage& image,
                      int scaleWidth,
                      int scaleHeight);
+    ImagePyr* GetCurrImagePyr();
 };
 #endif // MAINWINDOW_H

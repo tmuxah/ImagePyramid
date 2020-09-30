@@ -12,36 +12,49 @@ ImagePyr::ImagePyr(const QString& filePath)
 
     _isEmpty = false;
 
-    // Calculating the maximum amount of images in the pyramid
-    int imgMinSize = std::min(_image.width(), _image.height());
-    _count = std::log2(imgMinSize);
-    if (_count == 0) // image with either width or height equal to one
-        _count = 1;  // sets pyrHeight to zero what leads to crash
+    SetSizeDiv(2.0f);
 }
 
 // Passing copy of source image because qt_blurImage changes it
 QImage ImagePyr::PyrDown(QImage source)
 {
     QSize sourceSize = source.size();
+
     QImage imageOut(source);
-    QPainter painter( &imageOut );
-    qt_blurImage( &painter, source, 5, true, false );
+    QPainter painter(&imageOut);
+    qt_blurImage(&painter, source, 5, true, false);
 
     return imageOut.scaled(sourceSize / 2);
+}
+
+QImage ImagePyr::GetLayer(int index)
+{
+    int imgMinSize = std::min(_image.width(), _image.height());
+    int numBlurs = index * std::log2(imgMinSize) / _count;
+
+    // First, do required amount of downsamplings with bluring
+    QImage layer = _image;
+    for (int i = 0; i < numBlurs; ++i)
+        layer = ImagePyr::PyrDown(layer);
+
+    // Then simply resize the image to result size
+    double totalDiv = pow(_sizeDiv, index);
+    return layer.scaled(QSize(_image.width() / totalDiv,
+                              _image.height() / totalDiv));
+}
+
+void ImagePyr::SetSizeDiv(float sizeDiv)
+{
+    _sizeDiv = sizeDiv;
+
+    // Calculating the maximum amount of images in the pyramid
+    int imgMinSize = std::min(_image.width(), _image.height());
+    _count = std::log(imgMinSize) / std::log(_sizeDiv) + 1;
 }
 
 bool ImagePyr::IsEmpty()
 {
     return _isEmpty;
-}
-
-QImage ImagePyr::GetLayer(int index)
-{
-    QImage layer = _image;
-    for (int i = 0; i < index; ++i)
-        layer = ImagePyr::PyrDown(layer);
-
-    return layer;
 }
 
 int ImagePyr::Width()

@@ -7,16 +7,17 @@
 class ImagePyr
 {
 public:
-    typedef std::vector<cv::Mat>::size_type size_type;
-
     ImagePyr(std::string filePath);
     bool IsEmpty();
-    cv::Mat& GetLayer(int index);
-    size_type Count();
+    cv::Mat GetLayer(int index);
+    int Width();
+    int Height();
+    int Count();
     bool operator<(const ImagePyr &rhs) const;
 
 private:
-    std::vector<cv::Mat> _layers;
+    int _count;
+    cv::Mat _image;
     bool _isEmpty;
 };
 

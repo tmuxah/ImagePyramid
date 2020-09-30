@@ -95,8 +95,8 @@ void MainWindow::on_comboBoxLayer_activated(int index)
 
     // Displaying selected layer of image pyramid
     ShowCVImage(imagePyr->GetLayer(index),
-                imagePyr->GetLayer(0).cols,
-                imagePyr->GetLayer(0).rows);
+                imagePyr->Width(),
+                imagePyr->Height());
 }
 
 void MainWindow::on_comboBoxFile_activated(int index)
@@ -107,7 +107,7 @@ void MainWindow::on_comboBoxFile_activated(int index)
 
     // Updating the layer combo box items [0, 1, 2, ..., N)
     QStringList layerList;
-    for (ImagePyr::size_type i = 0; i < imagePyr->Count(); ++i)
+    for (int i = 0; i < imagePyr->Count(); ++i)
         layerList << QString::number(i);
     ui->comboBoxLayer->clear();
     ui->comboBoxLayer->addItems(layerList);

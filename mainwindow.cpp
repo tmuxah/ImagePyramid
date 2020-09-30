@@ -45,43 +45,43 @@ void MainWindow::ShowCVImage(const cv::Mat& cvImage,
 
 void MainWindow::on_actionOpen_file_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
+    QString filePath = QFileDialog::getOpenFileName(this,
         tr("Open"), "", tr("Images (*.png *.jpg)"));
 
-    if (QString::compare(fileName, QString()))
+    if (QString::compare(filePath, QString()))
     {
-        cv::Mat cvImage = cv::imread(fileName.toLocal8Bit().data(), 3);
+        std::string filePathSTD = filePath.toStdString();
 
-        if (cvImage.empty())
+        if (!_files.Contains(filePathSTD))
         {
-            QMessageBox::warning(this, "Warning", "Couldn't load the image.");
-            return;
+            ImagePyr imagePyr(filePathSTD);
+
+            if (imagePyr.IsEmpty())
+            {
+                QMessageBox::warning(this, " ", "Couldn't load the file.");
+                return;
+            }
+
+            // Pushing file to the file container
+            auto filePos = _files.AddFile(filePathSTD, imagePyr);
+
+            // Pushing its name to the file combo box as item
+            // and pointer to the file as data so after selecting an item
+            // we can access the corresponding file
+            int itemPos = std::distance(_files.Begin(), filePos);
+            QString fileName = filePath.section('/', -1, -1);
+            QVariant data = QVariant::fromValue((ImagePyr*)&(*filePos));
+            ui->comboBoxFile->insertItem(itemPos, fileName, data);
+            ui->comboBoxFile->setCurrentIndex(itemPos);
+
+            // This will update the layer combo box
+            // and display the opened image
+            on_comboBoxFile_activated(itemPos);
         }
-
-        // fixing colors by converting BGR to RGB
-        cv::cvtColor(cvImage, cvImage, cv::COLOR_BGR2RGB);
-
-        // Calculating the maximum amount of images in the pyramid
-        int imgMinSize = std::min(cvImage.cols, cvImage.rows);
-        int pyrHeight = std::log2(imgMinSize);
-        if (pyrHeight == 0) // image with either width or height equal to one
-            pyrHeight = 1;  // sets pyrHeight to zero what leads to crash
-        _imagePyr.resize(pyrHeight);
-
-        // Generating the image pyramid
-        _imagePyr[0] = cvImage;
-        auto prev = _imagePyr.begin();
-        for (auto curr = prev + 1; curr != _imagePyr.end(); ++curr, ++prev)
-            cv::pyrDown(*prev, *curr);
-
-        // Adding items [0, 1, 2, ..., pyrHeight) to the layer combo box
-        QStringList layerList;
-        for (int i = 0; i < pyrHeight; ++i)
-            layerList << QString::number(i);
-        ui->comboBoxLayer->clear();
-        ui->comboBoxLayer->addItems(layerList);
-
-        ShowCVImage(cvImage);
+        else
+        {
+            QMessageBox::warning(this, " ", "This file is already opened.");
+        }
 
         ui->horizontalPanel->setVisible(true);
     }
@@ -89,5 +89,29 @@ void MainWindow::on_actionOpen_file_triggered()
 
 void MainWindow::on_comboBoxLayer_activated(int index)
 {
-    ShowCVImage(_imagePyr[index], _imagePyr[0].cols, _imagePyr[0].rows);
+    // Extracting image pyramid that is stored in data of the file combo box
+    QVariant data = ui->comboBoxFile->itemData(ui->comboBoxFile->currentIndex());
+    ImagePyr* imagePyr = data.value<ImagePyr*>();
+
+    // Displaying selected layer of image pyramid
+    ShowCVImage(imagePyr->GetLayer(index),
+                imagePyr->GetLayer(0).cols,
+                imagePyr->GetLayer(0).rows);
+}
+
+void MainWindow::on_comboBoxFile_activated(int index)
+{
+    // Extracting image pyramid that is stored in data of comboBoxFile
+    QVariant data = ui->comboBoxFile->itemData(index);
+    ImagePyr* imagePyr = data.value<ImagePyr*>();
+
+    // Updating the layer combo box items [0, 1, 2, ..., N)
+    QStringList layerList;
+    for (ImagePyr::size_type i = 0; i < imagePyr->Count(); ++i)
+        layerList << QString::number(i);
+    ui->comboBoxLayer->clear();
+    ui->comboBoxLayer->addItems(layerList);
+
+    // Displaying selected image
+    on_comboBoxLayer_activated(0);
 }

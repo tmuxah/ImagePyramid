@@ -19,10 +19,13 @@ LIBS += -L$$(OPENCV_SDK_DIR)\x64\mingw\lib \
         -lopencv_calib3d440
 
 SOURCES += \
+    imagepyr.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
+    filecontainer.h \
+    imagepyr.h \
     mainwindow.h
 
 FORMS += \

@@ -1,15 +1,21 @@
 #ifndef IMAGEPYR_H
 #define IMAGEPYR_H
 
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
+#include <QWidget>
+
+QT_BEGIN_NAMESPACE
+    extern Q_WIDGETS_EXPORT void qt_blurImage(QPainter *p, QImage &blurImage, qreal radius, bool quality, bool alphaOnly, int transposed = 0);
+QT_END_NAMESPACE
 
 class ImagePyr
 {
 public:
-    ImagePyr(std::string filePath);
+    static QImage PyrDown(QImage source);
+
+public:
+    ImagePyr(const QString& filePath);
+    QImage GetLayer(int index);
     bool IsEmpty();
-    cv::Mat GetLayer(int index);
     int Width();
     int Height();
     int Count();
@@ -17,7 +23,7 @@ public:
 
 private:
     int _count;
-    cv::Mat _image;
+    QImage _image;
     bool _isEmpty;
 };
 

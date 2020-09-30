@@ -2,8 +2,6 @@
 #include "ui_mainwindow.h"
 #include <QFileDialog>
 #include <QMessageBox>
-#include <opencv2/imgproc.hpp>
-#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,22 +16,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::ShowCVImage(const cv::Mat& cvImage,
+void MainWindow::ShowImage(const QImage& image,
                              int scaleWidth = 0,
                              int scaleHeight = 0)
 {
-    if (cvImage.empty())
-        return;
-
     // Set label text to size of the image
     ui->labelImgSize->setText(QString("Size: %1x%2")
-                              .arg(cvImage.cols)
-                              .arg(cvImage.rows));
+                              .arg(image.width())
+                              .arg(image.height()));
 
-    // Converting cv::Mat > QImage > QPixmap
-    QImage qtImage = QImage((uchar*) cvImage.data, cvImage.cols, cvImage.rows,
-                            cvImage.step, QImage::Format_RGB888);
-    QPixmap pixmap = QPixmap::fromImage(qtImage);
+    QPixmap pixmap = QPixmap::fromImage(image);
 
     // If either the width or the height is zero or negative,
     // QPixmap::scaled() returns a null pixmap.
@@ -50,11 +42,9 @@ void MainWindow::on_actionOpen_file_triggered()
 
     if (QString::compare(filePath, QString()))
     {
-        std::string filePathSTD = filePath.toStdString();
-
-        if (!_files.Contains(filePathSTD))
+        if (!_files.Contains(filePath.toStdString()))
         {
-            ImagePyr imagePyr(filePathSTD);
+            ImagePyr imagePyr(filePath);
 
             if (imagePyr.IsEmpty())
             {
@@ -62,10 +52,10 @@ void MainWindow::on_actionOpen_file_triggered()
                 return;
             }
 
-            // Pushing file to the file container
-            auto filePos = _files.AddFile(filePathSTD, imagePyr);
+            // Adding file to the file container
+            auto filePos = _files.AddFile(filePath.toStdString(), imagePyr);
 
-            // Pushing its name to the file combo box as item
+            // Adding its name to the file combo box as item
             // and pointer to the file as data so after selecting an item
             // we can access the corresponding file
             int itemPos = std::distance(_files.Begin(), filePos);
@@ -94,9 +84,9 @@ void MainWindow::on_comboBoxLayer_activated(int index)
     ImagePyr* imagePyr = data.value<ImagePyr*>();
 
     // Displaying selected layer of image pyramid
-    ShowCVImage(imagePyr->GetLayer(index),
-                imagePyr->Width(),
-                imagePyr->Height());
+    ShowImage(imagePyr->GetLayer(index),
+              imagePyr->Width(),
+              imagePyr->Height());
 }
 
 void MainWindow::on_comboBoxFile_activated(int index)

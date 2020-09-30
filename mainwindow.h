@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <opencv2/imgcodecs.hpp>
 #include "imagepyr.h"
 #include "filecontainer.h"
 
@@ -29,7 +28,7 @@ private:
     Ui::MainWindow *ui;
     FileContainer<ImagePyr> _files;
 
-    void ShowCVImage(const cv::Mat& cvImage,
+    void ShowImage(const QImage& image,
                      int scaleWidth,
                      int scaleHeight);
 };
